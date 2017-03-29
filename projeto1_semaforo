@@ -1,0 +1,201 @@
+//Declaracaio de pinos
+
+#include <TimerOne.h>
+
+int led1 = 13; //Verde Semaforo
+int led2 = 12; //Amarelo Semaforo
+int led3 = 11; //Vermelho Semaforo
+int led4 = 10; //Verde Pedestre 
+int led5 = 9; //Vermelho Pedestre
+int botao = 8;
+int ldr = 7;
+
+// Variaveis dos contatores que serao base de tempo para as rotinas
+int contador = 0;
+int contamarelo =0;
+int contnoite = 0;
+int contdia = 100;
+int noite = 0;
+
+// Flags que definem o horario
+int dia = 0;
+int hab = 0;
+
+int sensorPin = A0; 
+int sensorValue = 0; 
+
+void setup() {
+
+
+  
+Serial.begin(9600); 
+  
+pinMode(led1 , OUTPUT);
+pinMode(led2 , OUTPUT);
+pinMode(led3 , OUTPUT);
+pinMode(led4 , OUTPUT);
+pinMode(led5 , OUTPUT);
+pinMode(botao , INPUT);
+pinMode(ldr , INPUT);
+
+Timer1.initialize(100000); // Interrupcao a cada 1ms
+Timer1.attachInterrupt(ISR_timer); // Associa a interrupcao periodica a funcao ISR_timer
+
+attachInterrupt(digitalPinToInterrupt(2), interrup1, LOW); 
+
+
+}
+
+void ISR_timer() { //Contagem por interrupção
+ 
+ 
+  contador ++;
+  contamarelo ++;
+  sensorValue = analogRead(A0); //Leitura do valor de tensão no LDR
+  Serial.println (sensorValue);
+  
+  // Verificação se e dia ou noite atraves de uma sequencia de leitura dos valores do LDR
+  
+  if (sensorValue < 700){
+     contnoite ++;
+     noite =1;
+     dia =0; 
+     contdia =0;
+          }
+    else {
+    dia = 1;
+    noite = 0;
+    contnoite = 0;
+    contdia ++;
+    }
+  }
+ 
+ 
+
+
+void interrup1() { //Acionamento do Semaforo atraves do botao por interrupcao
+  
+  contador=0;
+  hab=1;
+     
+}
+
+
+
+
+void loop() {
+
+
+//ROTINA DO SEMAFORO DURANTE A NOITE 
+
+   while((noite == 1) && (contnoite >30)||((contdia < 30) && (dia==1))){
+    
+     if( contamarelo%10 < 5){
+
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, LOW);
+     }
+     else{
+ 
+     digitalWrite(led2, LOW);
+       }    
+
+ 
+   }
+ 
+
+ 
+ 
+
+
+//ROTINA SEMAFORO DURANTE O DIA
+  
+
+    //ESTADO INICIAL
+    
+    
+     if (hab==0){ 
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+     }
+  
+    //BOTAO ATIVO
+    
+    if (hab==1){  
+      
+      switch (contador) {
+    case 1:
+      
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+            break;
+    case 50:
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+      break;
+      
+    case 80:
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, LOW);
+      digitalWrite(led3, HIGH);
+      digitalWrite(led4, HIGH);
+      digitalWrite(led5, LOW);
+         
+       break;
+       
+       
+       
+    case 110:
+      digitalWrite(led5, HIGH);
+      digitalWrite(led4, LOW);
+       break;
+   
+    case 120:
+      digitalWrite(led5, LOW);
+       break;
+    case 130:
+      digitalWrite(led5, HIGH);
+       break;
+    case 140:
+      digitalWrite(led5, LOW);
+       break;    
+       
+    case 150:
+      digitalWrite(led5, HIGH);
+       break;
+    case 160:
+      digitalWrite(led5, LOW);
+       break;    
+    
+       
+     case 170:
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+      digitalWrite(led3, LOW);
+      digitalWrite(led4, LOW);
+      digitalWrite(led5, HIGH);
+      contador = 0;
+      hab = 0;
+       break;
+    default:
+      // if nothing else matches, do the default
+      // default is optional
+    break;
+    }   
+        }
+}
+  
+  
+
